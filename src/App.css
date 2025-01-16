@@ -295,3 +295,106 @@ h2 {
   50% { box-shadow: 0 0 20px rgba(100, 108, 255, 0.2); }
   100% { box-shadow: 0 0 15px rgba(100, 108, 255, 0.1); }
 }
+
+.settings-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #13111C;
+  z-index: 1000;
+  border-radius: 12px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.settings-content {
+  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.domains-section {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.domain-list {
+  margin-bottom: 24px;
+}
+
+.domain-list h3 {
+  color: #888;
+  font-size: 0.9em;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.domain-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+}
+
+.domain-item.trusted {
+  border-left: 3px solid #646CFF;
+}
+
+.domain-item.blocked {
+  border-left: 3px solid #DC2626;
+}
+
+.domain-item button {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.domain-item button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #DC2626;
+}
+
+.empty-message {
+  color: #666;
+  font-size: 0.9em;
+  text-align: center;
+  padding: 20px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

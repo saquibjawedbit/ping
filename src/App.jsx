@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import Settings from './Settings'
 
 function App() {
   const [activeTab, setActiveTab] = useState("New Tab");
@@ -7,6 +8,7 @@ function App() {
   const [isWhitelisted, setIsWhitelisted] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [showSettings, setShowSettings] = useState(false);
 
   const addNotification = (message, type) => {
     const newNotification = {
@@ -97,8 +99,7 @@ function App() {
   };
 
   const handleSettings = () => {
-    console.log('Open settings');
-    // Add settings logic here
+    setShowSettings(true);
   };
 
   return (
@@ -154,6 +155,7 @@ function App() {
           </ul>
         </div>
       </div>
+      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
     </div>
   )
 }
