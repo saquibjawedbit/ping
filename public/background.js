@@ -148,18 +148,37 @@ async function updateRules(whitelist, blocklist) {
   try {
     const rules = [];
     
-    // Only add blocking rules if we have domains to block
+    // If we have domains to block, add comprehensive blocking rules
     if (blocklist.length > 0) {
-      rules.push({
-        id: 1,
-        priority: 100,
-        action: { type: "block" },
-        condition: {
-          regexFilter: ".*",
-          resourceTypes: ["sub_frame", "xmlhttprequest", "other", "object", "media"],
-          initiatorDomains: blocklist
+      rules.push(
+        {
+          id: 1,
+          priority: 100,
+          action: { type: "block" },
+          condition: {
+            resourceTypes: ["sub_frame", "object", "media", "xmlhttprequest", "other"],
+            initiatorDomains: blocklist
+          }
+        },
+        {
+          id: 2,
+          priority: 100,
+          action: { type: "block" },
+          condition: {
+            regexFilter: ".*\\.(zip|exe|pdf|doc[x]?|xls[x]?|ppt[x]?|rar|7z|tar|gz|bin|iso|msi|dmg|csv|txt|mp3|mp4|wav|avi|mov|pkg|jpg|jpeg|png|gif)$",
+            initiatorDomains: blocklist
+          }
+        },
+        {
+          id: 3,
+          priority: 100,
+          action: { type: "block" },
+          condition: {
+            requestMethods: ["post", "put"],
+            initiatorDomains: blocklist
+          }
         }
-      });
+      );
     }
 
     const oldRules = await chrome.declarativeNetRequest.getDynamicRules();

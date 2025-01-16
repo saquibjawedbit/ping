@@ -8,6 +8,18 @@ function App() {
   const [isBlocked, setIsBlocked] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
+  const addNotification = (message, type) => {
+    const newNotification = {
+      id: Date.now(),
+      message,
+      type
+    };
+    setNotifications(prev => [...prev, newNotification]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
+    }, 3000);
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -73,6 +85,7 @@ function App() {
       type: "ADD_TO_WHITELIST",
       domain: activeTab
     });
+    addNotification(`${activeTab} added to trusted sites`, 'success');
   };
 
   const handleBlock = () => {
@@ -80,6 +93,7 @@ function App() {
       type: "ADD_TO_BLOCKLIST",
       domain: activeTab
     });
+    addNotification(`${activeTab} added to blocked sites`, 'error');
   };
 
   const handleSettings = () => {
