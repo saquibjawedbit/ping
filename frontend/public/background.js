@@ -91,7 +91,13 @@ chrome.declarativeNetRequest.onRuleMatchedDebug.addListener((details) => {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
     whitelistedDomains: [],
-    blockedDomains: []
+    blockedDomains: [],
+    blockedFileTypes: [
+      'zip', 'exe', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 
+      'ppt', 'pptx', 'rar', '7z', 'tar', 'gz', 'bin', 
+      'iso', 'msi', 'dmg', 'csv', 'txt', 'mp3', 'mp4', 
+      'wav', 'avi', 'mov', 'pkg', 'jpg', 'jpeg', 'png', 'gif'
+    ]
   });
 });
 
@@ -146,6 +152,11 @@ async function updateRules(whitelist, blocklist) {
   if (blocklist[0] === 'newtab') return;
 
   try {
+    const { blockedFileTypes } = await chrome.storage.local.get(['blockedFileTypes']);
+    const fileTypesPattern = blockedFileTypes?.length > 0 
+      ? `.*\\.(${blockedFileTypes.join('|')})$`
+      : ".*\\.(exe|bin)$"; // Default blocking at minimum
+
     const rules = [];
     
     // If we have domains to block, add comprehensive blocking rules
@@ -165,7 +176,7 @@ async function updateRules(whitelist, blocklist) {
           priority: 100,
           action: { type: "block" },
           condition: {
-            regexFilter: ".*\\.(zip|exe|pdf|doc[x]?|xls[x]?|ppt[x]?|rar|7z|tar|gz|bin|iso|msi|dmg|csv|txt|mp3|mp4|wav|avi|mov|pkg|jpg|jpeg|png|gif)$",
+            regexFilter: fileTypesPattern,
             initiatorDomains: blocklist
           }
         },
