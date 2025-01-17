@@ -6,7 +6,7 @@ document.addEventListener('change', async function(event) {
       'blockedDomains',
       'blockedFileTypes',
     ]);
-
+    console.log("Upload Detected");
     const url = window.location.hostname;
 
     const isWhiteListed = whitelistedDomains.includes(url);
@@ -24,12 +24,28 @@ document.addEventListener('change', async function(event) {
     // Check if the file extension is in the blocked list
     if (invalidExtensions.includes(fileExtension)) {
       // Clear the file input
+      event.preventDefault();
       window.location.reload();
       showBlockPopup(url);
     }
   }
 });
 
+document.addEventListener('click', async function(event) {
+  if(event.target.innerHTML.toLowerCase().includes('upload', 'import', 'choose', 'select', 'browse', 'file', 'pick')) {
+    console.log("Upload Detected");
+    const {blockedDomains, blockedFileTypes} = await chrome.storage.local.get(['blockedDomains', 'blockedFileTypes']);
+    if(blockedDomains.includes(window.location.hostname)) {
+      const isBlocked = blockedFileTypes.some((ext) => event.target.innerHTML.toLowerCase().includes(ext));
+      if(isBlocked) {
+        window.location.reload();
+        showBlockPopup(window.location.hostname);
+      }
+    }
+
+    console.log(event);
+  }
+});
 
 // Create and add popup styles
 const style = document.createElement('style');

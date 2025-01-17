@@ -12,8 +12,24 @@ function extractDomain(url)  {
   }
 };
 
-function calculateTrustScore()  {
-  return 100;
+async function calculateTrustScore()  {
+  try {
+    const response = await fetch(serverURL);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data = await response.json(); // Parsing JSON response
+    if(data.safe === true) {
+      return 100;
+    }
+    else {
+      return 0;
+    }
+
+  } catch (error) {
+    return 100;
+  }
+  
 };
 
 const TRUST_THRESHOLD = 70; // Minimum score to allow downloads/uploads
@@ -36,7 +52,7 @@ async function getCurrentTab() {
     }
 
     const domain = extractDomain(tab.url);
-    const score = calculateTrustScore(domain);
+    const score = await calculateTrustScore(domain);
     currentDomain = domain; // Update current domain
     currentDomainScore = score; // Update current score
     console.log(`Processing: Domain: ${domain}, Score: ${score}`);
