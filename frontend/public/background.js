@@ -156,16 +156,17 @@ const sendMessageToContentScript = async () => {
 chrome.downloads.onCreated.addListener(async (downloadItem) => {
   console.log("Download detected:", downloadItem);
 
-  const { whitelistedDomains, blockedDomains } = await chrome.storage.local.get([
+  const { whitelistedDomains, blockedDomains, blockedFileTypes } = await chrome.storage.local.get([
     'whitelistedDomains',
-    'blockedDomains'
+    'blockedDomains',
+    'blockedFileTypes'
   ]);
 
   const isBlackListed = blockedDomains.includes(currentDomain);
 
   if(!isBlackListed) return;
 
-  const blockedFileExtensions = ["zip", "exe", "rar", "jpg", "png", "gif", "jpeg"];
+  const blockedFileExtensions = blockedFileTypes;
   const url = downloadItem.finalUrl || downloadItem.url || "";
   const mimeType = (downloadItem.mime || "").toLowerCase();
   const fileName = (downloadItem.filename || "").toLowerCase();

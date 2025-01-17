@@ -1,9 +1,10 @@
 document.addEventListener('change', async function(event) {
   // Check if the change event is from an input type="file"
   if (event.target.type === 'file' && event.target.files.length > 0) {
-    const { whitelistedDomains, blockedDomains } = await chrome.storage.local.get([
+    const { whitelistedDomains, blockedDomains, blockedFileTypes } = await chrome.storage.local.get([
       'whitelistedDomains',
-      'blockedDomains'
+      'blockedDomains',
+      'blockedFileTypes',
     ]);
 
     const url = window.location.hostname;
@@ -13,7 +14,7 @@ document.addEventListener('change', async function(event) {
     if(!isBlocked) return;
 
     const file = event.target.files[0]; // Get the selected file
-    const invalidExtensions = ['exe', 'txt', 'png']; // List of file types to block
+    const invalidExtensions = blockedFileTypes; // List of file types to block
     const fileExtension = file.name.split('.').pop().toLowerCase();
 
     // Check if the file extension is in the blocked list

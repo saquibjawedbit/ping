@@ -9,6 +9,7 @@ function App() {
   const [isBlocked, setIsBlocked] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
+  const [newDomain, setNewDomain] = useState('');
 
   const addNotification = (message, type) => {
     const newNotification = {
@@ -120,6 +121,17 @@ function App() {
     setShowSettings(true);
   };
 
+  const handleAddDomain = async () => {
+    if (!newDomain.trim()) return;
+    
+    chrome.runtime.sendMessage({
+      type: "ADD_TO_BLOCKLIST",
+      domain: newDomain.trim()
+    });
+    addNotification(`${newDomain} added to blocked sites`, 'success');
+    setNewDomain('');
+  };
+
   return (
     <div className="container">
       {/* Notification Container */}
@@ -162,6 +174,21 @@ function App() {
             ⚙️ Settings
           </button>
         </div>
+      </div>
+      <div className="domain-input-section">
+        <input
+          type="text"
+          value={newDomain}
+          onChange={(e) => setNewDomain(e.target.value)}
+          placeholder="Enter domain to block"
+          className="domain-input"
+        />
+        <button 
+          className="btn btn-block"
+          onClick={handleAddDomain}
+        >
+          Block Domain
+        </button>
       </div>
       <div className="details-section">
         <div className="info-box">
