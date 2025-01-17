@@ -168,7 +168,6 @@ const sendMessageToContentScript = async () => {
 
 chrome.downloads.onCreated.addListener(async (downloadItem) => {
   console.log("Download detected:", downloadItem);
-
   const { whitelistedDomains, blockedDomains, blockedFileTypes } = await chrome.storage.local.get([
     'whitelistedDomains',
     'blockedDomains',

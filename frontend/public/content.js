@@ -31,9 +31,14 @@ document.addEventListener('change', async function(event) {
 });
 
 document.addEventListener('click', async function(event) {
-  if(event.target.innerHTML.toLowerCase().includes('upload', 'import', 'choose', 'select', 'browse', 'file', 'pick')) {
-    console.log("Upload Detected");
-    const {blockedDomains, blockedFileTypes} = await chrome.storage.local.get(['blockedDomains', 'blockedFileTypes']);
+  const keywords = ['upload', 'import', 'choose', 'select', 'browse', 'file', 'pick', 'drag', 'drop'];
+  if(keywords.some(word => event.target.innerHTML.toLowerCase().includes(word))) {
+    const {blockedDomains, blockedFileTypes, whitelistedDomains} = await chrome.storage.local.get(['blockedDomains', 'blockedFileTypes', 'whitelistedDomains']);
+    
+    const isWhiteListed = whitelistedDomains.includes(window.location.hostname);
+
+    if(isWhiteListed) return;
+
     if(blockedDomains.includes(window.location.hostname)) {
       const isBlocked = blockedFileTypes.some((ext) => event.target.innerHTML.toLowerCase().includes(ext));
       if(isBlocked) {
@@ -44,6 +49,26 @@ document.addEventListener('click', async function(event) {
     }
 
     console.log(event);
+  }
+});
+
+document.addEventListener('drop', async function(event) {
+  const keywords = ['upload', 'import', 'choose', 'select', 'browse', 'file', 'pick', 'drag', 'drop'];
+
+
+  if(keywords.some(word => event.target.innerHTML.toLowerCase().includes(word))) {
+    const {blockedDomains, blockedFileTypes, whitelistedDomains} = await chrome.storage.local.get(['blockedDomains', 'blockedFileTypes', 'whitelistedDomains']);
+
+    const isWhiteListed = whitelistedDomains.includes(window.location.hostname);
+
+    if(isWhiteListed) return;
+
+    if(blockedDomains.includes(window.location.hostname)) {
+      console.log(event);
+      event.preventDefault();
+      window.location.reload();
+      showBlockPopup(window.location.hostname);
+    }
   }
 });
 
