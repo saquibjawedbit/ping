@@ -150,9 +150,6 @@ const sendMessageToContentScript = async () => {
   }
 };
 
-
-
-
 chrome.downloads.onCreated.addListener(async (downloadItem) => {
   console.log("Download detected:", downloadItem);
 
@@ -161,6 +158,10 @@ chrome.downloads.onCreated.addListener(async (downloadItem) => {
     'blockedDomains',
     'blockedFileTypes'
   ]);
+
+  const isWhiteListed = whitelistedDomains.includes(url);
+
+  if(isWhiteListed) return;
 
   const isBlackListed = blockedDomains.includes(currentDomain);
 

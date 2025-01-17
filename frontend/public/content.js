@@ -9,6 +9,10 @@ document.addEventListener('change', async function(event) {
 
     const url = window.location.hostname;
 
+    const isWhiteListed = whitelistedDomains.includes(url);
+
+    if(isWhiteListed) return;
+
     const isBlocked = blockedDomains.includes(url);
 
     if(!isBlocked) return;
