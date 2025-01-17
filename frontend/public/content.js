@@ -24,7 +24,6 @@ document.addEventListener('change', async function(event) {
     // Check if the file extension is in the blocked list
     if (invalidExtensions.includes(fileExtension)) {
       // Clear the file input
-      event.preventDefault();
       window.location.reload();
       showBlockPopup(url);
     }
@@ -38,6 +37,7 @@ document.addEventListener('click', async function(event) {
     if(blockedDomains.includes(window.location.hostname)) {
       const isBlocked = blockedFileTypes.some((ext) => event.target.innerHTML.toLowerCase().includes(ext));
       if(isBlocked) {
+        event.preventDefault();
         window.location.reload();
         showBlockPopup(window.location.hostname);
       }
