@@ -159,7 +159,7 @@ chrome.downloads.onCreated.addListener(async (downloadItem) => {
     'blockedFileTypes'
   ]);
 
-  const isWhiteListed = whitelistedDomains.includes(url);
+  const isWhiteListed = whitelistedDomains.includes(currentDomain);
 
   if(isWhiteListed) return;
 
