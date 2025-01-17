@@ -45,12 +45,6 @@ async function getCurrentTab() {
       currentData: { domain, score }
     });
 
-    const { whitelistedDomains, blockedDomains } = await chrome.storage.local.get([
-      'whitelistedDomains',
-      'blockedDomains'
-    ]);
-    // await updateRules(whitelistedDomains, blockedDomains);
-
   } catch (error) {
     console.error("Error in getCurrentTab:", error);
   }
@@ -62,26 +56,6 @@ getCurrentTab();
 // listen to Tab Change and Active Tab
 chrome.tabs.onActivated.addListener(getCurrentTab);
 chrome.tabs.onUpdated.addListener(getCurrentTab);
-
-
-// Trigger When Rule Matched
-chrome.declarativeNetRequest.onRuleMatchedDebug.addListener((details) => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]) {
-      chrome.storage.local.get(['blockedDomains'], (result) => {
-        const domain = extractDomain(tabs[0].url);
-        if (result.blockedDomains && result.blockedDomains.includes(domain)) {
-          chrome.tabs.sendMessage(tabs[0].id, {
-        type: "RULE_TRIGGERED",
-        details,
-        score: currentDomainScore,
-        blocked: currentDomainScore < TRUST_THRESHOLD
-          });
-        }
-      });
-    }
-  });
-});
 
 // Initialize storage on installation
 chrome.runtime.onInstalled.addListener(() => {
@@ -120,7 +94,6 @@ async function handleWhitelist(domain) {
     blockedDomains: updatedBlocklist
   });
 
-  // await updateRules(updatedWhitelist, updatedBlocklist);
 }
 
 async function handleBlock(domain) {
@@ -136,71 +109,7 @@ async function handleBlock(domain) {
     whitelistedDomains: updatedWhitelist,
     blockedDomains: updatedBlocklist
   });
-
-
-  // await updateRules(updatedWhitelist, updatedBlocklist);
 }
-
-// async function updateRules(whitelist, blocklist) {
-//   // Skip if both lists are empty or invalid
-//   if (!whitelist) whitelist = [];
-//   if (!blocklist) blocklist = [];
-//   if (blocklist[0] === 'newtab') return;
-
-//   try {
-//     const { blockedFileTypes } = await chrome.storage.local.get(['blockedFileTypes']);
-//     const fileTypesPattern = blockedFileTypes?.length > 0 
-//       ? `.*\\.(${blockedFileTypes.join('|')})$`
-//       : ".*\\.(exe|bin)$"; // Default blocking at minimum
-
-//     const rules = [];
-    
-//     // If we have domains to block, add comprehensive blocking rules
-//     if (blocklist.length > 0) {
-//       rules.push(
-//         {
-//           id: 1,
-//           priority: 100,
-//           action: { type: "block" },
-//           condition: {
-//             resourceTypes: ["sub_frame", "object", "media", "xmlhttprequest", "other"],
-//             initiatorDomains: blocklist
-//           }
-//         },
-//         {
-//           id: 2,
-//           priority: 100,
-//           action: { type: "block" },
-//           condition: {
-//             regexFilter: fileTypesPattern,
-//             initiatorDomains: blocklist
-//           }
-//         },
-//         {
-//           id: 3,
-//           priority: 100,
-//           action: { type: "block" },
-//           condition: {
-//             requestMethods: ["post", "put"],
-//             initiatorDomains: blocklist
-//           }
-//         }
-//       );
-//     }
-
-//     const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
-//     const oldRuleIds = oldRules.map(rule => rule.id);
-
-//     await chrome.declarativeNetRequest.updateDynamicRules({
-//       removeRuleIds: oldRuleIds,
-//       addRules: rules
-//     });
-
-//     console.log('Rules updated - Whitelist:', whitelist, 'Blocklist:', blocklist);
-//   } catch (error) {
-//     console.error('Error updating rules:', error);
-//   }
-// }
 
 
 // Listen for new downloads
@@ -242,8 +151,19 @@ const sendMessageToContentScript = async () => {
 };
 
 
+
+
 chrome.downloads.onCreated.addListener(async (downloadItem) => {
   console.log("Download detected:", downloadItem);
+
+  const { whitelistedDomains, blockedDomains } = await chrome.storage.local.get([
+    'whitelistedDomains',
+    'blockedDomains'
+  ]);
+
+  const isBlackListed = blockedDomains.includes(currentDomain);
+
+  if(!isBlackListed) return;
 
   const blockedFileExtensions = ["zip", "exe", "rar", "jpg", "png", "gif", "jpeg"];
   const url = downloadItem.finalUrl || downloadItem.url || "";

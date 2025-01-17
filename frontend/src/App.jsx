@@ -37,7 +37,6 @@ function App() {
           chrome.storage.local.get(['currentData']),
           chrome.storage.local.get(['whitelistedDomains', 'blockedDomains'])
         ]);
-        console.log("Data: " + currentData.currentData);
 
         if (currentData.currentData) {
           const domain = currentData.currentData.domain;

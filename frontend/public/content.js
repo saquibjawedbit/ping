@@ -1,3 +1,31 @@
+document.addEventListener('change', async function(event) {
+  // Check if the change event is from an input type="file"
+  if (event.target.type === 'file' && event.target.files.length > 0) {
+    const { whitelistedDomains, blockedDomains } = await chrome.storage.local.get([
+      'whitelistedDomains',
+      'blockedDomains'
+    ]);
+
+    const url = window.location.hostname;
+
+    const isBlocked = blockedDomains.includes(url);
+
+    if(!isBlocked) return;
+
+    const file = event.target.files[0]; // Get the selected file
+    const invalidExtensions = ['exe', 'txt', 'png']; // List of file types to block
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+
+    // Check if the file extension is in the blocked list
+    if (invalidExtensions.includes(fileExtension)) {
+      // Clear the file input
+      window.location.reload();
+      showBlockPopup(url);
+    }
+  }
+});
+
+
 // Create and add popup styles
 const style = document.createElement('style');
 style.textContent = `
