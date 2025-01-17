@@ -1,5 +1,7 @@
 console.log("Background Script Running");
 
+const serverURL = 'http://localhost:3000';
+
 // Extract Domain
 function extractDomain(url)  {
   try {
@@ -10,20 +12,13 @@ function extractDomain(url)  {
   }
 };
 
-function calculateTrustScore(domain)  {
-  // Mock trust score calculation - replace with real logic
-  if (!domain || domain === "Invalid URL") return 0;
-  // Simple example: longer domains get lower scores
-  const baseScore = Math.max(0, 100 - (domain.length * 2));
-  // Add bonus for common TLDs
-  const commonTlds = ['.com', '.org', '.edu', '.gov'];
-  const tldBonus = commonTlds.some(tld => domain.endsWith(tld)) ? 20 : 0;
-  return Math.min(100, Math.max(0, baseScore + tldBonus));
-
+function calculateTrustScore()  {
+  return 100;
 };
 
 const TRUST_THRESHOLD = 70; // Minimum score to allow downloads/uploads
 let currentDomainScore = 0; // Track current domain score
+let currentDomain = '';
 
 //Callback to Get Current Tab
 async function getCurrentTab() {
@@ -42,6 +37,7 @@ async function getCurrentTab() {
 
     const domain = extractDomain(tab.url);
     const score = calculateTrustScore(domain);
+    currentDomain = domain; // Update current domain
     currentDomainScore = score; // Update current score
     console.log(`Processing: Domain: ${domain}, Score: ${score}`);
 
@@ -53,7 +49,7 @@ async function getCurrentTab() {
       'whitelistedDomains',
       'blockedDomains'
     ]);
-    await updateRules(whitelistedDomains, blockedDomains);
+    // await updateRules(whitelistedDomains, blockedDomains);
 
   } catch (error) {
     console.error("Error in getCurrentTab:", error);
@@ -124,7 +120,7 @@ async function handleWhitelist(domain) {
     blockedDomains: updatedBlocklist
   });
 
-  await updateRules(updatedWhitelist, updatedBlocklist);
+  // await updateRules(updatedWhitelist, updatedBlocklist);
 }
 
 async function handleBlock(domain) {
@@ -142,66 +138,133 @@ async function handleBlock(domain) {
   });
 
 
-  await updateRules(updatedWhitelist, updatedBlocklist);
+  // await updateRules(updatedWhitelist, updatedBlocklist);
 }
 
-async function updateRules(whitelist, blocklist) {
-  // Skip if both lists are empty or invalid
-  if (!whitelist) whitelist = [];
-  if (!blocklist) blocklist = [];
-  if (blocklist[0] === 'newtab') return;
+// async function updateRules(whitelist, blocklist) {
+//   // Skip if both lists are empty or invalid
+//   if (!whitelist) whitelist = [];
+//   if (!blocklist) blocklist = [];
+//   if (blocklist[0] === 'newtab') return;
 
-  try {
-    const { blockedFileTypes } = await chrome.storage.local.get(['blockedFileTypes']);
-    const fileTypesPattern = blockedFileTypes?.length > 0 
-      ? `.*\\.(${blockedFileTypes.join('|')})$`
-      : ".*\\.(exe|bin)$"; // Default blocking at minimum
+//   try {
+//     const { blockedFileTypes } = await chrome.storage.local.get(['blockedFileTypes']);
+//     const fileTypesPattern = blockedFileTypes?.length > 0 
+//       ? `.*\\.(${blockedFileTypes.join('|')})$`
+//       : ".*\\.(exe|bin)$"; // Default blocking at minimum
 
-    const rules = [];
+//     const rules = [];
     
-    // If we have domains to block, add comprehensive blocking rules
-    if (blocklist.length > 0) {
-      rules.push(
-        {
-          id: 1,
-          priority: 100,
-          action: { type: "block" },
-          condition: {
-            resourceTypes: ["sub_frame", "object", "media", "xmlhttprequest", "other"],
-            initiatorDomains: blocklist
-          }
-        },
-        {
-          id: 2,
-          priority: 100,
-          action: { type: "block" },
-          condition: {
-            regexFilter: fileTypesPattern,
-            initiatorDomains: blocklist
-          }
-        },
-        {
-          id: 3,
-          priority: 100,
-          action: { type: "block" },
-          condition: {
-            requestMethods: ["post", "put"],
-            initiatorDomains: blocklist
-          }
+//     // If we have domains to block, add comprehensive blocking rules
+//     if (blocklist.length > 0) {
+//       rules.push(
+//         {
+//           id: 1,
+//           priority: 100,
+//           action: { type: "block" },
+//           condition: {
+//             resourceTypes: ["sub_frame", "object", "media", "xmlhttprequest", "other"],
+//             initiatorDomains: blocklist
+//           }
+//         },
+//         {
+//           id: 2,
+//           priority: 100,
+//           action: { type: "block" },
+//           condition: {
+//             regexFilter: fileTypesPattern,
+//             initiatorDomains: blocklist
+//           }
+//         },
+//         {
+//           id: 3,
+//           priority: 100,
+//           action: { type: "block" },
+//           condition: {
+//             requestMethods: ["post", "put"],
+//             initiatorDomains: blocklist
+//           }
+//         }
+//       );
+//     }
+
+//     const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
+//     const oldRuleIds = oldRules.map(rule => rule.id);
+
+//     await chrome.declarativeNetRequest.updateDynamicRules({
+//       removeRuleIds: oldRuleIds,
+//       addRules: rules
+//     });
+
+//     console.log('Rules updated - Whitelist:', whitelist, 'Blocklist:', blocklist);
+//   } catch (error) {
+//     console.error('Error updating rules:', error);
+//   }
+// }
+
+
+// Listen for new downloads
+const sendMessageToContentScript = async () => {
+  try {
+    const tabs = await new Promise((resolve, reject) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (result) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(result);
         }
-      );
-    }
-
-    const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
-    const oldRuleIds = oldRules.map(rule => rule.id);
-
-    await chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: oldRuleIds,
-      addRules: rules
+      });
     });
 
-    console.log('Rules updated - Whitelist:', whitelist, 'Blocklist:', blocklist);
+    if (tabs[0]) {
+      const message = {
+        type: "DOWNLOAD_DETECTED",
+        url: currentDomain,
+      };
+
+      await new Promise((resolve, reject) => {
+        chrome.tabs.sendMessage(tabs[0].id, message, () => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve();
+          }
+        });
+      });
+
+      console.log("Message sent to content script.");
+    } else {
+      console.warn("No active tab found.");
+    }
   } catch (error) {
-    console.error('Error updating rules:', error);
+    console.error("Error sending message:", error);
   }
-}
+};
+
+
+chrome.downloads.onCreated.addListener(async (downloadItem) => {
+  console.log("Download detected:", downloadItem);
+
+  const blockedFileExtensions = ["zip", "exe", "rar", "jpg", "png", "gif", "jpeg"];
+  const url = downloadItem.finalUrl || downloadItem.url || "";
+  const mimeType = (downloadItem.mime || "").toLowerCase();
+  const fileName = (downloadItem.filename || "").toLowerCase();
+
+  const isBlocked = blockedFileExtensions.some((ext) =>
+    url.toLowerCase().endsWith(`.${ext}`) || mimeType.toLowerCase().includes(ext) || fileName.toLowerCase().endsWith(`.${ext}`)
+  );
+
+  if (isBlocked) {
+    // Stop the download
+    chrome.downloads.cancel(downloadItem.id);
+
+    // Get the active tab to send message to content script
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tabs[0]) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: "DOWNLOAD_DETECTED",
+        url: currentDomain
+      });
+    }
+  }
+});

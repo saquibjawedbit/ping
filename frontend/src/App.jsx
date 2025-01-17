@@ -22,6 +22,14 @@ function App() {
     }, 3000);
   };
 
+  const reloadTab = () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length > 0) {
+        chrome.tabs.reload(tabs[0].id);
+      }
+    });
+  } 
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -29,30 +37,39 @@ function App() {
           chrome.storage.local.get(['currentData']),
           chrome.storage.local.get(['whitelistedDomains', 'blockedDomains'])
         ]);
+        console.log("Data: " + currentData.currentData);
 
         if (currentData.currentData) {
-          setActiveTab(currentData.currentData.domain);
+          const domain = currentData.currentData.domain;
+          setActiveTab(typeof domain === 'object' ? JSON.stringify(domain) : domain);
           setScore(currentData.currentData.score);
-          
+  
           // Update status
-          setIsWhitelisted(lists.whitelistedDomains?.includes(currentData.currentData.domain));
-          setIsBlocked(lists.blockedDomains?.includes(currentData.currentData.domain));
+          const isWhitelisted = Array.isArray(lists.whitelistedDomains)
+            ? lists.whitelistedDomains.includes(domain)
+            : false;
+          const isBlocked = Array.isArray(lists.blockedDomains)
+            ? lists.blockedDomains.includes(domain)
+            : false;
+          setIsWhitelisted(isWhitelisted);
+          setIsBlocked(isBlocked);
         }
       } catch (error) {
         console.error('Error loading data:', error);
       }
     };
-
+  
     loadData();
-
+  
     const handleStorageChange = (changes) => {
       console.log('Storage changes:', changes);
       if (changes.currentData?.newValue) {
-        setActiveTab(changes.currentData.newValue.domain);
+        const domain = changes.currentData.newValue.domain;
+        setActiveTab(typeof domain === 'object' ? JSON.stringify(domain) : domain);
         setScore(changes.currentData.newValue.score);
       }
     };
-
+  
     chrome.storage.onChanged.addListener(handleStorageChange);
     return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, []);
@@ -88,6 +105,7 @@ function App() {
       domain: activeTab
     });
     addNotification(`${activeTab} added to trusted sites`, 'success');
+    reloadTab();
   };
 
   const handleBlock = () => {
@@ -96,6 +114,7 @@ function App() {
       domain: activeTab
     });
     addNotification(`${activeTab} added to blocked sites`, 'error');
+    reloadTab();
   };
 
   const handleSettings = () => {

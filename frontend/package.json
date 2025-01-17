@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@types/chrome": "^0.0.297",
+    "axios": "^1.7.9",
     "ping": "file:",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",

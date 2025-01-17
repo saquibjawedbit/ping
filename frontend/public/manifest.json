@@ -18,7 +18,8 @@
         "storage",
         "declarativeNetRequest",
         "declarativeNetRequestFeedback",
-        "webRequest"
+        "webRequest",
+        "downloads"
     ],
     "background": {
         "service_worker": "background.js"
