@@ -237,5 +237,9 @@ app.post("/calculate-score", async (req, res) => {
     }
 });
 
+app.get('/ping', (req, res) => {
+    res.send('Hello World!');
+});
+
 // Start the server
 app.listen(port, () => console.log(`Server is running on http://localhost:${port}`));

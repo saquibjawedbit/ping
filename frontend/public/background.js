@@ -1,6 +1,6 @@
 console.log("Background Script Running");
 
-const serverURL = 'http://localhost:3000';
+const serverURL = 'http://localhost:3000/calculate-score';
 
 // Extract Domain
 function extractDomain(url)  {
@@ -12,21 +12,28 @@ function extractDomain(url)  {
   }
 };
 
-async function calculateTrustScore()  {
+async function calculateTrustScore(domain)  {
   try {
-    const response = await fetch(serverURL);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const data = await response.json(); // Parsing JSON response
-    if(data.safe === true) {
-      return 100;
-    }
-    else {
-      return 0;
-    }
+    // Sending a POST request
+    const response = await fetch(serverURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ domain: currentDomain }),
+    });
 
+    // Parsing JSON response
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+
+    // Logging and returning the desired value
+    console.log("Data:", data);
+    return data.totalScore;
   } catch (error) {
+    console.log("Error: " + error);
     return 100;
   }
   
