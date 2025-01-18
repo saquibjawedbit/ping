@@ -1,6 +1,6 @@
 console.log("Background Script Running");
 
-const serverURL = 'http://localhost:3000/calculate-score';
+const serverURL = 'https://ping-3k57.onrender.com/calculate-score';
 
 // Extract Domain
 function extractDomain(url)  {
